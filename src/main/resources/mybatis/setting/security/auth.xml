@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.template.setting.security.MapperSecurity">
+    <select id="selectUserDetailsByUsername" resultType="com.example.template.setting.security.AhaUserDetails" parameterType="String">
+        SELECT
+            id,
+            username,
+            password,
+            email,
+            phone,
+            is_active,
+            created_at,
+            updated_at
+        FROM aha_user
+        WHERE username = #{username}
+        AND is_active = 1
+    </select>
+
+    <select id="selectAllRole" resultType="com.example.template.setting.security.AhaAuth$Role">
+        SELECT
+            id,
+            name
+        FROM aha_role
+    </select>
+
+    <select id="selectRolesByUsername" resultType="com.example.template.setting.security.AhaAuth$Role" parameterType="String">
+        SELECT
+            ar.id,
+            ar.name
+        FROM aha_user_role aur
+        JOIN aha_user au
+        ON au.id = aur.id_user
+        JOIN aha_role ar
+        ON ar.id = aur.id_role
+        WHERE au.username = #{username}
+    </select>
+
+    <insert id="createUser" parameterType="com.example.template.setting.security.AhaAuth$SigningUp">
+        INSERT INTO aha_user (
+            username,
+            password
+        )
+        VALUES (
+            #{username},
+            #{password}
+        )
+    </insert>
+</mapper>

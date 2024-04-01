@@ -1,0 +1,20 @@
+spring:
+  datasource:
+    url: ${definition.db.url-jdbc}/develop_dbdave?${definition.db.option-jdbc}
+    driver-class-name: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
+    username: dave
+    password: "0000"
+    hikari:
+      connection-timeout: 20000
+      maximum-pool-size: 10
+
+jwt:
+  secret: ImPossible$$
+  token-validity-ms: 3600000
+
+directory:
+  user:
+    image: /home/JENKINS/template/develop/data/user/image
+
+logging:
+  config: classpath:logback-spring-develop.xml
