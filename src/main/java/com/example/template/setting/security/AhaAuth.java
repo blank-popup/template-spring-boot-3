@@ -1,5 +1,7 @@
 package com.example.template.setting.security;
 
+import com.example.template.setting.common.user.EntityRole;
+//import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.util.List;
@@ -29,21 +31,14 @@ public class AhaAuth {
     public static class SignedIn {
         private Long id;
         private String username;
-        private String token;
-        private List<AhaAuth.Role> roles;
-        private String refreshToken;
-    }
-
-    @Data
-    public static class Role {
-        private Long id;
-        private String name;
-    }
-
-    @Data
-    public static class UserRole {
-        private Long id;
-        private Long idUser;
-        private Long idRole;
+//        @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+        private String tokenAccess;
+//        @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+        private String tokenRefresh;
+//        @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+        private Long termsRemainingTokenAccess;
+//        @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+        private Long termsRemainingTokenRefresh;
+        private List<EntityRole> roles;
     }
 }

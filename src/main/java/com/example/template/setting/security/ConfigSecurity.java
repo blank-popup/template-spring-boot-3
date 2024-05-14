@@ -23,6 +23,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @RequiredArgsConstructor
 public class ConfigSecurity {
     private final ProviderJwt providerJwt;
+    private final RepositorySecurity repositorySecurity;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -53,6 +54,7 @@ public class ConfigSecurity {
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
                 .sessionManagement(management -> management
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(requests -> requests
@@ -71,7 +73,7 @@ public class ConfigSecurity {
                         new EntryPointAuthentication()
                 ))
                 .addFilterBefore(
-                        new FilterAuthentication(providerJwt),
+                        new FilterAuthentication(providerJwt, repositorySecurity),
                         UsernamePasswordAuthenticationFilter.class
                 );
         return http.build();

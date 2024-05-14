@@ -13,13 +13,13 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Component
 public class ServiceRedis {
-    private RedisTemplate<String, Object> redisTemplateTokenUser;
-    private RedisTemplate<String, Object> redisTemplateIdToken;
+    private final RedisTemplate<String, Object> redisTemplateIdUser;
+    private final RedisTemplate<String, Object> redisTemplateIdTokenRefresh;
 
-    public ServiceRedis(RedisTemplate<String, Object> redisTemplateTokenUser,
-                        @Qualifier("01") RedisTemplate<String, Object> redisTemplateIdToken) {
-        this.redisTemplateTokenUser = redisTemplateTokenUser;
-        this.redisTemplateIdToken = redisTemplateIdToken;
+    public ServiceRedis(RedisTemplate<String, Object> redisTemplateIdUser,
+                        @Qualifier("redisDatabaseIdTokenRefresh") RedisTemplate<String, Object> redisTemplateIdTokenRefresh) {
+        this.redisTemplateIdUser = redisTemplateIdUser;
+        this.redisTemplateIdTokenRefresh = redisTemplateIdTokenRefresh;
     }
 
 
@@ -39,7 +39,7 @@ public class ServiceRedis {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             String value = objectMapper.registerModule(new JavaTimeModule()).writeValueAsString(data);
-            redisTemplate.opsForValue().set(key, value, timeout, TimeUnit.MILLISECONDS);
+            redisTemplate.opsForValue().set(key, value, timeout, TimeUnit.SECONDS);
             return true;
         } catch(Exception e){
             log.error(e.toString());
@@ -64,96 +64,44 @@ public class ServiceRedis {
     }
 
     private boolean deleteData(RedisTemplate<String, Object> redisTemplate, String key) {
-        return redisTemplate.delete(key);
+        return Boolean.TRUE.equals(redisTemplate.delete(key));
     }
 
     private Long getExpire(RedisTemplate<String, Object> redisTemplate, String key) {
-        return redisTemplate.getExpire(key, TimeUnit.MILLISECONDS);
+        return redisTemplate.getExpire(key, TimeUnit.SECONDS);
     }
 
 
-    public boolean setAuthTokenUser(String token, AhaUserDetails userDetailsCustom) {
-        return setData(redisTemplateTokenUser, token, userDetailsCustom);
+    public boolean setAuthAccessIdUser(String id, AhaUserDetails ahaUserDetails) {
+        return setData(redisTemplateIdUser, id, ahaUserDetails);
     }
 
-    public boolean setAuthTokenUserTimeout(String token, AhaUserDetails userDetailsCustom, long timeout) {
-        return setData(redisTemplateTokenUser, token, userDetailsCustom, timeout);
+    public boolean setAuthAccessIdUserTimeout(String id, AhaUserDetails ahaUserDetails, long timeout) {
+        return setData(redisTemplateIdUser, id, ahaUserDetails, timeout);
     }
 
-    public AhaUserDetails getAuthTokenUser(String token) {
-        return getData(redisTemplateTokenUser, token, AhaUserDetails.class);
+    public AhaUserDetails getAuthAccessIdUser(String id) {
+        return getData(redisTemplateIdUser, id, AhaUserDetails.class);
     }
 
-
-    public boolean setAuthIdToken(String id, String token) {
-        return setData(redisTemplateIdToken, id, token);
-    }
-
-    public boolean setAuthIdTokenTimeout(String id, String token, long timeout) {
-        return setData(redisTemplateIdToken, id, token, timeout);
-    }
-
-    public String getAuthIdToken(String id) {
-        return getData(redisTemplateIdToken, id, String.class);
+    public Long getAuthAccessExpire(String id) {
+        return getExpire(redisTemplateIdUser, id);
     }
 
 
-    // public void setAuthRefreshTokenId(String refreshToken, String id) {
-    //     setData(redisTemplateRefreshTokenId, refreshToken, id);
-    // }
+    public boolean setAuthRefreshIdToken(String id, String token) {
+        return setData(redisTemplateIdTokenRefresh, id, token);
+    }
 
-    // public void setAuthRefreshTokenIdTimeout(String refreshToken, String id, long timeout) {
-    //     setData(redisTemplateRefreshTokenId, refreshToken, id, timeout);
-    // }
+    public boolean setAuthRefreshIdTokenTimeout(String id, String token, long timeout) {
+        return setData(redisTemplateIdTokenRefresh, id, token, timeout);
+    }
 
-    // public Optional<String> getAuthRefreshTokenId(String refreshToken) {
-    //     return getData(redisTemplateRefreshTokenId, refreshToken, String.class);
-    // }
+    public String getAuthRefreshIdToken(String id) {
+        return getData(redisTemplateIdTokenRefresh, id, String.class);
+    }
 
-    // public void setValue(String key, String value) {
-    //     ValueOperations<String, Object> values = redisTemplate.opsForValue();
-    //     values.set(key, value);
-    // }
-
-    // public void setValue(String key, String value, Duration duration) {
-    //     ValueOperations<String, Object> values = redisTemplate.opsForValue();
-    //     values.set(key, value, duration);
-    // }
-
-    // @Transactional(readOnly=true)
-    // public String getValue(String key) {
-    //     ValueOperations<String, Object> values = redisTemplate.opsForValue();
-    //     if (values.get(key) == null) {
-    //         return "false";
-    //     }
-    //     return (String) values.get(key);
-    // }
-
-    // public void deleteValue(String key) {
-    //     redisTemplate.delete(key);
-    // }
-
-    // public void expireValues(String key, int timeout) {
-    //     redisTemplate.expire(key, timeout, TimeUnit.MILLISECONDS);
-    // }
-
-    // public void setHashOps(String key, Map<String, String> value) {
-    //     HashOperations<String, Object, Object> values = redisTemplate.opsForHash();
-    //     values.putAll(key, value);
-    // }
-
-    // @Transactional(readOnly=true)
-    // public String getHashOps(String key, String hashKey) {
-    //     HashOperations<String, Object, Object> values = redisTemplate.opsForHash();
-    //     return Boolean.TRUE.equals(values.hasKey(key, hashKey)) ? (String) redisTemplate.opsForHash().get(key, hashKey) : "";
-    // }
-
-    // public void deleteHashOps(String key, String hashKey) {
-    //     HashOperations<String, Object, Object> values = redisTemplate.opsForHash();
-    //     values.delete(key, hashKey);
-    // }
-
-    // public boolean checkExistsValue(String value) {
-    //     return !value.equals("false");
-    // }
+    public Long getAuthRefreshExpire(String id) {
+        return getExpire(redisTemplateIdTokenRefresh, id);
+    }
 }

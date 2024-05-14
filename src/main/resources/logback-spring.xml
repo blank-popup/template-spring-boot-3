@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration scan="true" scanPeriod="60 seconds">
+    <springProfile name="develop">
+        <property name="DIRECTORY_LOG" value="/home/JENKINS/template/develop/log/" />
+    </springProfile>
+    <springProfile name="local">
+        <property name="DIRECTORY_LOG" value="D:/WorkSpace/template/local/log/" />
+    </springProfile>
+    <springProfile name="service">
+        <property name="DIRECTORY_LOG" value="/home/JENKINS/template/service/log/" />
+    </springProfile>
+    <springProfile name="test">
+        <property name="DIRECTORY_LOG" value="D:/WorkSpace/template/test/log/" />
+    </springProfile>
+
+    <property name="FILENAME_LOG_CURRENT" value="current.log" />
+    <property name="FILENAME_LOG_CURRENT_ABOVE_WARN" value="current_above_warn.log" />
+    <property name="FILENAME_LOG_ROLLING" value="%d{yyyy-MM-dd}.%i.log" />
+    <property name="FILENAME_LOG_ROLLING_ABOVE_WARN" value="%d{yyyy-MM-dd}_above_warn.%i.log" />
+    <property name="MAX_FILE_SIZE" value="10MB" />
+    <property name="MAX_HISTORY" value="999" />
+
+    <!-- %black", "%red", "%green", "%yellow", "%blue", "%magenta", "%cyan", "%white", "%gray", -->
+    <!-- "%boldRed", "%boldGreen", "%boldYellow", "%boldBlue", "%boldMagenta", "%boldCyan", "%boldWhite", -->
+    <!-- "%highlight" -->
+    <property name="PATTERN_CONSOLE" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%highlight(%5level)] [%thread] %green(%logger.%method:%line) - %msg%n" />
+    <property name="PATTERN_FILE" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%5level] [%thread] [%logger.%method:%line] - %msg%n" />
+
+    <appender name="CONSOLE_LOG" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>${PATTERN_CONSOLE}</pattern>
+        </encoder>
+    </appender>
+    <appender name="FILE_LOG_ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <charset>UTF8</charset>
+            <pattern>${PATTERN_FILE}</pattern>
+        </encoder>
+        <file>${DIRECTORY_LOG}${FILENAME_LOG_CURRENT}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${DIRECTORY_LOG}${FILENAME_LOG_ROLLING}</fileNamePattern>
+            <maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
+            <maxHistory>${MAX_HISTORY}</maxHistory>
+        </rollingPolicy>
+    </appender>
+    <appender name="FILE_LOG_ROLLING_ABOVE_WARN" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>WARN</level>
+        </filter>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <charset>UTF8</charset>
+            <pattern>${PATTERN_FILE}</pattern>
+        </encoder>
+        <file>${DIRECTORY_LOG}${FILENAME_LOG_CURRENT_ABOVE_WARN}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${DIRECTORY_LOG}${FILENAME_LOG_ROLLING_ABOVE_WARN}</fileNamePattern>
+            <maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
+            <maxHistory>${MAX_HISTORY}</maxHistory>
+        </rollingPolicy>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE_LOG" />
+        <appender-ref ref="FILE_LOG_ROLLING" />
+        <appender-ref ref="FILE_LOG_ROLLING_ABOVE_WARN" />
+    </root>
+
+    <logger name="org.springframework" level="INFO" />
+    <logger name="org.springframework.transaction.interceptor" level="TRACE"/>
+    <logger name="com.example.template" level="DEBUG" />
+    <logger name="log4jdbc.log4j2" level="OFF" />
+    <logger name="jdbc" level="OFF"/>
+    <logger name="jdbc.connection" level="OFF"/>
+    <logger name="jdbc.sqlonly" level="OFF"/>
+    <logger name="jdbc.sqltiming" level="DEBUG"/>
+    <logger name="jdbc.audit" level="OFF"/>
+    <logger name="jdbc.resultset" level="OFF"/>
+    <logger name="jdbc.resultsettable" level="DEBUG"/>
+</configuration>

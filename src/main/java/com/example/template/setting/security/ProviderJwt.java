@@ -1,6 +1,6 @@
 package com.example.template.setting.security;
 
-import com.example.template.util.InfoRequest;
+import com.example.template.setting.redis.ServiceRedis;
 import io.jsonwebtoken.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -22,47 +22,65 @@ import java.util.Date;
 @Slf4j
 @RequiredArgsConstructor
 public class ProviderJwt implements InitializingBean {
-    @Value("${jwt.secret}")
-    private String secretKey;
-    @Value("${jwt.token-validity-ms}")
-    private long tokenValidMillisecond;
-     private final ServiceUserDetails serviceUserDetails;
-//    private final ServiceRedis serviceRedis;
+    @Value("${jwt.key-access}")
+    private String jwtKeyAccess;
+    @Value("${jwt.key-refresh}")
+    private String jwtKeyRefresh;
+    @Value("${jwt.term-s-token-access}")
+    private long termsTokenAccess;
+    @Value("${jwt.term-s-token-refresh}")
+    private long termsTokenRefresh;
+    @Value("${jwt.term-s-get-new-token-access}")
+    private long termsNewTokenAccess;
+    @Value("${jwt.term-s-get-new-token-refresh}")
+    private long termsNewTokenRefresh;
+    private final ServiceRedis serviceRedis;
+    private final ServiceUserDetails serviceUserDetails;
 
     @Override
     public void afterPropertiesSet() {
-        secretKey = Base64.getEncoder().encodeToString(secretKey.getBytes());
+        jwtKeyAccess = Base64.getEncoder().encodeToString(jwtKeyAccess.getBytes());
+        jwtKeyRefresh = Base64.getEncoder().encodeToString(jwtKeyRefresh.getBytes());
     }
 
-    public String createJwt(Long id, String ip, String userAgent) {
+    private String createJwt(Long id, String ip, String userAgent, String type, Date now, Date expiration, String jwtKey) {
         Claims claims = Jwts.claims().setSubject(Long.toString(id));
         claims.put("ip", ip);
         claims.put("userAgent", userAgent);
-        for (String key : claims.keySet()) {
-            log.info("claims : [{}] : [{}]", key, claims.get(key));
-        }
-        Date now = new Date();
+        claims.put("type", type);
 
-        String token = Jwts.builder()
+        return Jwts.builder()
                 .setClaims(claims)
                 .setIssuedAt(now)
-                .setExpiration(new Date(now.getTime() + tokenValidMillisecond))
-                .signWith(SignatureAlgorithm.HS256, secretKey)
+                .setExpiration(expiration)
+                .signWith(SignatureAlgorithm.HS256, jwtKey)
                 .compact();
-        log.info("Token : {}", token);
+
+    }
+
+    public String createJwtAccess(Long id, String ip, String userAgent) {
+        Date now = new Date();
+        Date expiration = new Date(now.getTime() + termsTokenAccess * 1000);
+        String token = createJwt(id, ip, userAgent, "access", now, expiration, jwtKeyAccess);
+        log.info("Token Access : {}", token);
 
         return token;
     }
 
-    // public Authentication getAuthentication(Jws<Claims> information) {
-    //     log.info("JWT authentication : ID : {}", information.getBody().getSubject());
-    //     UserDetails userDetails = userDetailsService.loadUserByUsername(information.getBody().getSubject());
+    public String createJwtRefresh(Long id, String ip, String userAgent) {
+        Date now = new Date();
+        Date expiration = new Date(now.getTime() + termsTokenRefresh * 1000);
+        String token = createJwt(id, ip, userAgent, "refresh", now, expiration, jwtKeyRefresh);
+        log.info("Token Refresh : {}", token);
 
-    //     return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
-    // }
+        return token;
+    }
 
-    public Authentication getAuthentication(String jwt) {
-        UserDetails userDetails = serviceUserDetails.loadUserByUsername(jwt);
+    public Authentication getAuthentication(String id) {
+        if (id == null) {
+            return null;
+        }
+        UserDetails userDetails = serviceUserDetails.loadUserByUsername(id);
         if (userDetails == null) {
             return null;
         }
@@ -80,36 +98,46 @@ public class ProviderJwt implements InitializingBean {
         return null;
     }
 
-    public Jws<Claims> getInformationOfJwt(String jwt) {
-        try {
+    private boolean checkInformation(Jws<Claims> information) {
             HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
-            String ipRemote = InfoRequest.getRemoteIP(request);
+            String ipRemote = request.getRemoteAddr();
             String userAgentRemote = request.getHeader("User-Agent");
 
-            Jws<Claims> claims = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(jwt);
-            String ipJwt = (String)claims.getBody().get("ip");
-            String userAgentJwt = (String)claims.getBody().get("userAgent");
-            log.debug("Validate Tocken ipRemote : [{}], ipJwt : [{}]", ipRemote, ipJwt);
-            log.debug("Validate Tocken userAgentRemote : [{}], userAgentJwt : [{}]", userAgentRemote, userAgentJwt);
+            String ipJwt = (String)information.getBody().get("ip");
+            String userAgentJwt = (String)information.getBody().get("userAgent");
+            log.debug("Token ipRemote : [{}], ipJwt : [{}]", ipRemote, ipJwt);
+            log.debug("Token userAgentRemote : [{}], userAgentJwt : [{}]", userAgentRemote, userAgentJwt);
 
             if (ipRemote != null && ipJwt != null) {
                 if (ipRemote.equals(ipJwt) == false) {
-                    log.warn("API Key : Invalid remote IP");
-                    return null;
+                    log.warn("Inconsistent remote IP : JWT[" + ipJwt + "], Current[" + ipRemote + "]");
+                    return false;
                 }
             }
             if (userAgentRemote != null && userAgentJwt != null) {
                 if (userAgentRemote.equals(userAgentJwt) == false) {
-                    log.warn("API Key : Invalid User-Agent");
-                    return null;
+                    log.warn("Inconsistent User-Agent : JWT[" + userAgentJwt + "], Current[" + userAgentRemote + "]");
+                    return false;
                 }
             }
-            if (claims.getBody().getExpiration().before(new Date()) == true) {
-                log.warn("API Key : Invalid terms");
-                return null;
+            if (information.getBody().getExpiration().before(new Date()) == true) {
+                log.warn("JWT : Expiration time exceeded");
+                return false;
             }
 
-            return claims;
+            return true;
+    }
+
+    private Jws<Claims> getInformationOfJwt(String jwt, String key) {
+        try {
+            Jws<Claims> information = Jwts.parser().setSigningKey(key).parseClaimsJws(jwt);
+            return information;
+//            if (checkInformation(information) == true) {
+//                return information;
+//            }
+//            else {
+//                return null;
+//            }
         } catch (SignatureException | MalformedJwtException | IllegalArgumentException exception) {
             log.warn("Invalid JWT");
         } catch (ExpiredJwtException exception) {
@@ -119,5 +147,37 @@ public class ProviderJwt implements InitializingBean {
         }
 
         return null;
+    }
+
+    public Jws<Claims> getInformationOfJwtAccess(String jwt) {
+        return getInformationOfJwt(jwt, jwtKeyAccess);
+    }
+
+    public Jws<Claims> getInformationOfJwtRefresh(String jwt) {
+        return getInformationOfJwt(jwt, jwtKeyRefresh);
+    }
+
+    public boolean setRedisAuthAccessIdUserTimeout(String id, AhaUserDetails ahaUserDetails) {
+        return serviceRedis.setAuthAccessIdUserTimeout(id, ahaUserDetails, termsTokenAccess);
+    }
+
+    public AhaUserDetails getRedisAuthAccessIdUser(String id) {
+        return serviceRedis.getAuthAccessIdUser(id);
+    }
+
+    public Long getRedisAuthAccessExpire(String id) {
+        return serviceRedis.getAuthAccessExpire(id);
+    }
+
+    public boolean setRedisAuthRefreshIdTokenTimeout(String id, String token) {
+        return serviceRedis.setAuthRefreshIdTokenTimeout(id, token, termsTokenRefresh);
+    }
+
+    public String getRedisAuthRefreshIdToken(String id) {
+        return serviceRedis.getAuthRefreshIdToken(id);
+    }
+
+    public Long getRedisAuthRefreshExpire(String id) {
+        return serviceRedis.getAuthRefreshExpire(id);
     }
 }

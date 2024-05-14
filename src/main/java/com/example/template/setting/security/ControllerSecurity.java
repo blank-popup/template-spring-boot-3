@@ -2,7 +2,7 @@ package com.example.template.setting.security;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpHeaders;
+//import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -47,12 +47,20 @@ public class ControllerSecurity {
         try {
             AhaAuth.SignedIn signedIn = serviceSecurity.signin(signingIn);
 
-            HttpHeaders httpHeaders = new HttpHeaders();
-            httpHeaders.add("Authorization", "Bearer " + signedIn.getToken());
+//            HttpHeaders httpHeaders = new HttpHeaders();
+//            httpHeaders.add("Access-Control-Expose-Headers", "tokenAccess, termsRemainingTokenAccess, tokenRefresh, termsRemainingTokenRefresh");
+//            httpHeaders.add("tokenAccess", signedIn.getTokenAccess());
+//            httpHeaders.add("termsRemainingTokenAccess", String.valueOf(signedIn.getTermsRemainingTokenAccess()));
+//            httpHeaders.add("tokenRefresh", signedIn.getTokenRefresh());
+//            httpHeaders.add("termsRemainingTokenRefresh", String.valueOf(signedIn.getTermsRemainingTokenRefresh()));
 
+//            responseEntity = ResponseEntity
+//                    .status(HttpStatus.OK)
+//                    .headers(httpHeaders)
+//                    .body(signedIn);
             responseEntity = ResponseEntity
                     .status(HttpStatus.OK)
-                    .headers(httpHeaders)
+//                    .headers(httpHeaders)
                     .body(signedIn);
         } catch (RuntimeException exception) {
             log.warn(exception.getMessage());

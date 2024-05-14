@@ -1,20 +1,30 @@
+debug: false
+
 spring:
   datasource:
-    url: ${definition.db.url-jdbc}/develop_dbdave?${definition.db.option-jdbc}
+    url: ${definition.db.url}/develop_dbdave?${definition.db.option}
     driver-class-name: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
     username: dave
     password: "0000"
     hikari:
       connection-timeout: 20000
       maximum-pool-size: 10
+  data:
+    redis:
+      host: ${definition.host}
+      port: 19030
+      password: "0000"
+      index:
+        id-user: 8
+        id-token-refresh: 9
 
 jwt:
-  secret: ImPossible$$
-  token-validity-ms: 3600000
+  key-access: ImPossible$$Access
+  key-refresh: ImPossible$$Refresh
+  term-s-token-access: 60
+  term-s-token-refresh: 600
+  term-s-get-new-token-access: 270
+  term-s-get-new-token-refresh: 300
 
 directory:
-  user:
-    image: D:/WorkSpace/template/local/data/user/image
-
-logging:
-  config: classpath:logback-spring-local.xml
+  data: D:/WorkSpace/template/local/data

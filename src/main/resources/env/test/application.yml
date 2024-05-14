@@ -1,0 +1,30 @@
+debug: true
+
+spring:
+  datasource:
+    url: ${definition.db.url}/test_dbdave?${definition.db.option}
+    driver-class-name: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
+    username: dave
+    password: "0000"
+    hikari:
+      connection-timeout: 20000
+      maximum-pool-size: 10
+  data:
+    redis:
+      host: ${definition.host}
+      port: 19030
+      password: "0000"
+      index:
+        id-user: 8
+        id-token-refresh: 9
+
+jwt:
+  key-access: ImPossible$$Access
+  key-refresh: ImPossible$$Refresh
+  term-s-token-access: 3600
+  term-s-token-refresh: 86400
+  term-s-get-new-token-access: 600
+  term-s-get-new-token-refresh: 14400
+
+directory:
+  data: D:/WorkSpace/template/test/data

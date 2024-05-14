@@ -1,30 +1,67 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.example.template.setting.security.MapperSecurity">
-    <select id="selectUserDetailsByUsername" resultType="com.example.template.setting.security.AhaUserDetails" parameterType="String">
+<mapper namespace="com.example.template.setting.security.RepositorySecurity">
+    <select id="selectUserDetailsByUsername" resultType="com.example.template.setting.common.user.EntityUser" parameterType="String">
         SELECT
-            id,
-            username,
-            password,
-            email,
-            phone,
-            is_active,
-            created_at,
-            updated_at
-        FROM aha_user
-        WHERE username = #{username}
-        AND is_active = 1
+            au.id AS id,
+            au.username AS username,
+            au.password AS password,
+            au.email AS email,
+            au.phone AS phone,
+            ar.id AS id_role,
+            ar.name AS name_role,
+            au.status AS status,
+            au.created_by AS created_by,
+            au.created_at AS created_at,
+            au.updated_by AS updated_by,
+            au.updated_at AS updated_at,
+            au.is_deleted AS is_deleted,
+            au.deleted_by AS deleted_by,
+            au.deleted_at AS deleted_at
+        FROM aha_user au
+        LEFT JOIN aha_user_role aur
+        ON aur.id_user = au.id
+        LEFT JOIN aha_role ar
+        ON ar.id = aur.id_role
+        WHERE au.username = #{username}
+        AND au.is_deleted = 0
     </select>
 
-    <select id="selectAllRole" resultType="com.example.template.setting.security.AhaAuth$Role">
+    <select id="selectUserDetailsById" resultType="com.example.template.setting.common.user.EntityUser" parameterType="Long">
+        SELECT
+            au.id AS id,
+            au.username AS username,
+            au.password AS password,
+            au.email AS email,
+            au.phone AS phone,
+            ar.id AS id_role,
+            ar.name AS name_role,
+            au.status AS status,
+            au.created_by AS created_by,
+            au.created_at AS created_at,
+            au.updated_by AS updated_by,
+            au.updated_at AS updated_at,
+            au.is_deleted AS is_deleted,
+            au.deleted_by AS deleted_by,
+            au.deleted_at AS deleted_at
+        FROM aha_user au
+        LEFT JOIN aha_user_role aur
+        ON au.id = aur.id_user
+        LEFT JOIN aha_role ar
+        ON ar.id = aur.id_role
+        WHERE au.id = #{id}
+        AND au.is_deleted = 0
+    </select>
+
+    <select id="selectAllRole" resultType="com.example.template.setting.common.user.EntityRole">
         SELECT
             id,
             name
         FROM aha_role
     </select>
 
-    <select id="selectRolesByUsername" resultType="com.example.template.setting.security.AhaAuth$Role" parameterType="String">
+    <select id="selectRolesByUsername" resultType="com.example.template.setting.common.user.EntityRole" parameterType="String">
         SELECT
             ar.id,
             ar.name
@@ -36,6 +73,16 @@
         WHERE au.username = #{username}
     </select>
 
+    <select id="selectRolesById" resultType="com.example.template.setting.common.user.EntityRole" parameterType="Long">
+        SELECT
+            ar.id,
+            ar.name
+        FROM aha_user_role aur
+        JOIN aha_role ar
+        ON ar.id = aur.id_role
+        WHERE aur.id_user = #{id}
+    </select>
+
     <insert id="createUser" parameterType="com.example.template.setting.security.AhaAuth$SigningUp">
         INSERT INTO aha_user (
             username,
@@ -45,5 +92,21 @@
             #{username},
             #{password}
         )
+    </insert>
+
+    <insert id="createUserRole"
+            parameterType="com.example.template.setting.common.user.EntityUserRole">
+        INSERT INTO aha_user_role
+        (
+            id_user,
+            id_role
+        )
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+                #{item.idUser},
+                #{item.idRole}
+            )
+        </foreach>
     </insert>
 </mapper>

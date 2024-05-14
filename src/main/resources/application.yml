@@ -1,9 +1,10 @@
 definition:
-#  host: 192.168.200.109
-  host: 192.168.45.159
+#  host: 192.168.123.87
+  host: 192.168.200.172
+#  host: 192.168.45.174
   db:
-    url-jdbc: jdbc:log4jdbc:mariadb://${definition.host}:19000
-    option-jdbc: characterEncoding=UTF-8&serverTimezone=Asia/Seoul&allowMultiQueries=true
+    url: jdbc:log4jdbc:mariadb://${definition.host}:19000
+    option: characterEncoding=UTF-8&serverTimezone=Asia/Seoul&allowMultiQueries=true
 
 server:
   port: 18020
@@ -11,37 +12,30 @@ server:
     contextPath: /template
 
 spring:
+  mvc:
+    throw-exception-if-no-handler-found: true
+  web:
+    resources:
+      add-mappings: false
   servlet:
     multipart:
       max-file-size: 1000MB
       max-request-size: 1000MB
-  data:
-    redis:
-      host: ${definition.host}
-      port: 19030
-      password: "0000"
+
+jwt:
+  name-token-access: tokenAccess
+  name-terms-remaining-token-access: termsRemainingTokenAccess
+  name-token-refresh: tokenRefresh
+  name-terms-remaining-token-refresh: termsRemainingTokenRefresh
 
 mybatis:
   mapper-locations: classpath:/mybatis/**/*.xml
   configuration:
     map-underscore-to-camel-case: true
+    call-setters-on-nulls: true
 
-# logging:
-#   level:
-#     org:
-#       springframework: INFO
-#     com:
-#       example:
-#         template: TRACE
-#     log4jdbc:
-#       log4j2: ERROR
-#    jdbc:
-#      sqlonly: TRACE
-#      sqltiming: TRACE
-#      resultsettable: TRACE
-#      audit: TRACE
-#      resultset: TRACE
-#      connection: TRACE
+logging:
+  config: classpath:logback-spring.xml
 
 ---
 
@@ -75,24 +69,6 @@ spring:
 spring:
   config:
     activate:
-      on-profile: "test_develop"
+      on-profile: "test"
     import:
-      - classpath:/env/test_develop/application.yml
-
----
-
-spring:
-  config:
-    activate:
-      on-profile: "test_local"
-    import:
-      - classpath:/env/test_local/application.yml
-
----
-
-spring:
-  config:
-    activate:
-      on-profile: "test_server"
-    import:
-      - classpath:/env/test_server/application.yml
+      - classpath:/env/test/application.yml

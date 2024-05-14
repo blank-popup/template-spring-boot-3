@@ -58,8 +58,7 @@ $ sudo apt update
 $ sudo apt install mariadb-server mariadb-client
 $ sudo mariadb-secure-installation
 
-Switch to unix_socket authentication [Y/n] y
- ... skipping.
+Switch to unix_socket authentication [Y/n] n
 
 Change the root password? [Y/n] y
 New password:
@@ -270,8 +269,6 @@ sudo apt install git
 
 
 ### Java JDK
-$ sudo apt install openjdk-8-jdk
-$ sudo apt install openjdk-11-jdk
 $ sudo apt install openjdk-17-jdk
 
 $ sudo update-alternatives --install /usr/bin/java java /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java 91081
@@ -283,8 +280,6 @@ export PATH=$PATH:$JAVA_HOME/bin
 
 $ echo $JAVA_HOME
 /usr/lib/jvm/java-17-openjdk-amd64
-/usr/lib/jvm/java-11-openjdk-amd64
-/usr/lib/jvm/java-8-openjdk-amd64/jre
 
 
 

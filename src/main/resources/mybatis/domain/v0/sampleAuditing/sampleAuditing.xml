@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.template.domain.v0.sampleAha.RepositorySampleAha">
+    <select id="selectOne"
+            resultType="com.example.template.domain.v0.sampleAha.EntitySampleAha"
+            parameterType="com.example.template.domain.v0.sampleAha.EntitySampleAha">
+        SELECT
+            id,
+            foo,
+            bar
+        FROM aha_sample
+        WHERE is_deleted = 0
+        AND id = #{id}
+    </select>
+
+    <select id="selectList"
+            resultType="com.example.template.domain.v0.sampleAha.EntitySampleAha"
+            parameterType="com.example.template.setting.common.paging.Paging">
+        SELECT
+            id,
+            foo,
+            bar
+        FROM aha_sample
+        WHERE is_deleted = 0
+        <if test='offset != null and pageSize != null'>
+            LIMIT #{offset}, #{pageSize}
+        </if>
+    </select>
+
+    <select id="selectSearch"
+            resultType="com.example.template.domain.v0.sampleAha.EntitySampleAha"
+            parameterType="java.util.Map">
+        SELECT
+            id,
+            foo,
+            bar
+        FROM aha_sample
+        WHERE 1 = 1
+        AND is_deleted = 0
+        <if test='entity.foo != null'>
+            AND foo = #{entity.foo}
+        </if>
+        <if test='entity.bar != null'>
+            AND bar = #{entity.bar}
+        </if>
+        <if test='paging.offset != null and paging.pageSize != null'>
+            LIMIT #{paging.offset}, #{paging.pageSize}
+        </if>
+    </select>
+
+    <insert id="insertOne"
+            parameterType="com.example.template.domain.v0.sampleAha.EntitySampleAha"
+            useGeneratedKeys="true"
+            keyProperty="id"
+            keyColumn="id">
+        INSERT INTO aha_sample
+        (
+            foo,
+            bar
+        )
+        VALUES
+        (
+            #{foo},
+            #{bar}
+        )
+    </insert>
+
+    <insert id="insertList"
+            parameterType="com.example.template.domain.v0.sampleAha.EntitySampleAha">
+        INSERT INTO aha_sample
+        (
+            foo,
+            bar
+        )
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+        (
+            #{item.foo},
+            #{item.bar}
+        )
+        </foreach>
+    </insert>
+
+    <insert id="updateOne"
+            parameterType="com.example.template.domain.v0.sampleAha.EntitySampleAha">
+        INSERT INTO aha_sample
+        (
+            id,
+            foo,
+            bar
+        )
+        VALUES
+        (
+            #{id},
+            #{foo},
+            #{bar}
+        )
+        ON DUPLICATE KEY UPDATE
+            foo = VALUES(foo),
+            bar = VALUES(bar)
+    </insert>
+
+    <insert id="updateList"
+            parameterType="com.example.template.domain.v0.sampleAha.EntitySampleAha">
+        INSERT INTO aha_sample
+        (
+            id,
+            foo,
+            bar
+        )
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+        (
+            #{item.id},
+            #{item.foo},
+            #{item.bar}
+        )
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+            foo = VALUES(foo),
+            bar = VALUES(bar)
+    </insert>
+
+    <update id="deleteOne"
+            parameterType="com.example.template.domain.v0.sampleAha.EntitySampleAha">
+        UPDATE aha_sample
+        SET
+            is_deleted = #{isDeleted},
+            updated_by = #{updatedBy},
+            updated_at = #{updatedAt},
+            deleted_by = #{deletedBy},
+            deleted_at = #{deletedAt}
+        WHERE id = #{id}
+    </update>
+
+    <update id="deleteList"
+            parameterType="com.example.template.domain.v0.sampleAha.EntitySampleAha">
+        <foreach collection="list" item="item" separator=";">
+            UPDATE aha_sample
+            SET
+                is_deleted = #{item.isDeleted},
+                updated_by = #{item.updatedBy},
+                updated_at = #{item.updatedAt},
+                deleted_by = #{item.deletedBy},
+                deleted_at = #{item.deletedAt}
+            WHERE id = #{item.id}
+        </foreach>
+    </update>
+</mapper>

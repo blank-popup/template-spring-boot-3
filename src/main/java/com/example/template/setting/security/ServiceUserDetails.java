@@ -13,12 +13,9 @@ public class ServiceUserDetails implements UserDetailsService {
     private final ServiceRedis serviceRedis;
 
     @Override
-    public UserDetails loadUserByUsername(String token) throws UsernameNotFoundException {
-        AhaUserDetails userDetails = serviceRedis.getAuthTokenUser(token);
-        if (userDetails == null) {
-            throw new UsernameNotFoundException("Not found UserDetails : " + token);
-        }
+    public UserDetails loadUserByUsername(String id) throws UsernameNotFoundException {
+        AhaUserDetails ahaUserDetails = serviceRedis.getAuthAccessIdUser(id);
 
-        return userDetails;
+        return ahaUserDetails;
     }
 }
